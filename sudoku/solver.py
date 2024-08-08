@@ -27,18 +27,11 @@ class BacktrackingSolver:
             for j in range(n_col):
                 if sudoku.board[i, j] == 0:
                     for num in sudoku.candidates(i, j):
-                        sudoku.fill(i, j, num)
+                        sudoku.explore(i, j, num)
 
-                        # row_set = set(sudoku.board[i, :])
-                        # col_set = set(sudoku.board[:, j])
-                        # r, c = i // 3 * 3, j // 3 * 3
-                        # block_set = set(sudoku.board[r : r + 3, c : c + 3].flatten())
-                        # adj_set = row_set | col_set | block_set
-                        # if num in adj_set:
-                        #     continue
                         if self.solve(sudoku):
                             return True
-                        sudoku.clear(i, j)
+                        sudoku.step_back(i, j)
                     return False
         return True
 

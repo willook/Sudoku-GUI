@@ -5,10 +5,10 @@ from sudoku.entity import Sudoku
 
 class Renderer:
     def __init__(self, sudoku: Sudoku):
+        self.sudoku = sudoku
         self.cell_size = 60
         self.cell_row_offset = 20
         self.cell_col_offset = 20
-        self.sudoku = sudoku
         self.init_screen()
         self.cursors = [-1, -1]
 
@@ -26,18 +26,31 @@ class Renderer:
         """
         running = True
         while running:
-            for event in pygame.event.get():
-                key = pygame.key.get_pressed()
-                # click cell
+            # check there is any event, if not, skip the loop
+            event_list = pygame.event.get()
+            key = pygame.key.get_pressed()
+            if not event_list and not any(key):
+                pygame.time.wait(50)
+                continue
+            else:
+                self.screen.fill((255, 255, 255))
+
+            for event in event_list:
+                # click
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    self.screen.fill((255, 255, 255))
                     i, j = self.pos_to_cell(*pygame.mouse.get_pos())
                     self.cursors = [i, j]
-                    self.highlight_cell(i, j)
-                # q to quit
-                if key[pygame.K_q] or key[pygame.K_ESCAPE]:
-                    running = False
+                # key down
+                elif event.type == pygame.KEYDOWN:
+                    if pygame.K_1 <= event.key <= pygame.K_9:
+                        num = int(event.unicode)
+                        self.sudoku.fill(self.cursors[0], self.cursors[1], num)
+                    elif event.key == pygame.K_BACKSPACE:
+                        self.sudoku.fill(self.cursors[0], self.cursors[1], 0)
+                    elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
+                        running = False
 
+            self.highlight_cell()
             self.draw_num_pad()
             self.draw_board()
             # clock.tick(60)
@@ -45,14 +58,15 @@ class Renderer:
             # print("rendering")
         pygame.quit()
 
-    def highlight_cell(self, i, j):
+    def highlight_cell(self):
         """
         Highlight the cell at (i, j).
         """
+        i, j = self.cursors
+        if i == -1 or j == -1:
+            return
         adj_color = (235, 235, 255)
         cell_color = (215, 215, 255)
-        if i == -1:
-            return
         cell_size = self.cell_size
         cell_row_offset = self.cell_row_offset
         cell_col_offset = self.cell_col_offset
@@ -133,7 +147,7 @@ class Renderer:
                         hop - 5,
                     ),
                 )
-                text = font.render(str(i * 3 + j), True, (100, 100, 255))
+                text = font.render(str(i + j * 3 + 1), True, (100, 100, 255))
                 i_offset, j_offset = 38, 33
                 self.screen.blit(
                     text, (i0 + i_offset + i * hop, j0 + j_offset + j * hop)
@@ -147,12 +161,21 @@ class Renderer:
         cell_size = self.cell_size
         cell_row_offset = self.cell_row_offset
         cell_col_offset = self.cell_col_offset
+        base_num_color = (0, 0, 0)
+        right_num_color = (0, 0, 200)
+        wrong_num_color = (200, 0, 0)
         for i in range(9):
             for j in range(9):
                 num = self.sudoku.board[i, j]
-                if num != 0:
-                    text = font.render(str(num), False, (0, 0, 0))
-                    self.screen.blit(text, (j * cell_size + 45, i * cell_size + 40))
+                if num == 0:
+                    continue
+                if self.sudoku.origin_board[i, j] != 0:
+                    text = font.render(str(num), False, base_num_color)
+                elif self.sudoku.board_gt[i, j] == num:
+                    text = font.render(str(num), False, right_num_color)
+                else:
+                    text = font.render(str(num), False, wrong_num_color)
+                self.screen.blit(text, (j * cell_size + 45, i * cell_size + 40))
         for i in [1, 2, 4, 5, 7, 8, 0, 3, 6, 9]:
             color = (0, 0, 0) if i % 3 == 0 else (200, 200, 200)
             pygame.draw.line(

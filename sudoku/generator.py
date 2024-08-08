@@ -4,7 +4,7 @@ import numpy as np
 
 from sudoku.entity import Sudoku
 from sudoku.solver import BacktrackingSolver
-from sudoku.level import *
+from sudoku.constants import Level
 
 
 class Generator:
@@ -20,7 +20,8 @@ class Generator:
         assert 1 <= difficulty <= 5, "Difficulty level must be between 1 and 5"
         full_sudoku = self._generate_random_full_sudoku()
         sudoku = self._remove_numbers(full_sudoku, difficulty)
-        return (full_sudoku, sudoku)
+        sudoku.board_gt = full_sudoku.board
+        return sudoku
 
     def _remove_numbers(self, sudoku: Sudoku, difficulty: int):
         """
@@ -28,15 +29,15 @@ class Generator:
         """
         board = sudoku.board.copy()
         n = 81
-        if difficulty == EASY:
+        if difficulty == Level.EASY:
             n = 30
-        elif difficulty == NORMAL:
+        elif difficulty == Level.NORMAL:
             n = 35
-        elif difficulty == HARD:
+        elif difficulty == Level.HARD:
             n = 40
-        elif difficulty == MASTER:
+        elif difficulty == Level.MASTER:
             n = 45
-        elif difficulty == EXTREME:
+        elif difficulty == Level.EXTREME:
             n = 50
         indices = np.random.choice(81, n, replace=False)
         for idx in indices:

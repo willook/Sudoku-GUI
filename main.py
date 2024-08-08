@@ -1,13 +1,11 @@
 from sudoku.generator import Generator
 from sudoku.renderer import Renderer
-from sudoku.level import *
+from sudoku.constants import Level
 
 
 def main():
     generator = Generator()
-    sudoku_gt, sudoku = generator.generate(difficulty=HARD)
-    # print(sudoku_gt.board)
-    # print(sudoku.board)
+    sudoku = generator.generate(difficulty=Level.HARD)
 
     renderer = Renderer(sudoku)
     renderer.render()
